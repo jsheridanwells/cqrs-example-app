@@ -10,8 +10,8 @@ namespace Customer.Api.Models.Mongo
         private IMongoDatabase _db;
         public CustomerMongoRepository()
         {
-            MongoClient _client = new MongoClient("mongodb://localhost:27017");
-            _db = _client.GetDatabase(_customerDB);
+            MongoClient client = new MongoClient("mongodb://localhost:27017");
+            _db = client.GetDatabase(_customerDB);
         }
 
         public List<CustomerEntity> GetCustomers()
@@ -20,10 +20,38 @@ namespace Customer.Api.Models.Mongo
                 .Find(_ => true).ToList();
         }
 
-        public CustomerEntity GetCustomer(long id)
+        public CustomerEntity GetCustomerById(long id)
         {
             return _db.GetCollection<CustomerEntity>(_customers)
                 .Find(c => c.Id == id).SingleOrDefault();
+        }
+
+        public CustomerEntity GetCustomerByEmail(string email)
+        {
+            return _db.GetCollection<CustomerEntity>(_customers)
+                .Find(c => c.Email == email).SingleOrDefault();
+        }
+
+        public void Create(CustomerEntity customer)
+        {
+            _db.GetCollection<CustomerEntity>(_customers)
+                .InsertOne(customer);
+        }
+
+        public void Update(CustomerEntity customer)
+        {
+            var filter = Builders<CustomerEntity>.Filter
+                .Where(c => c.Id == customer.Id);
+            _db.GetCollection<CustomerEntity>(_customers)
+                .ReplaceOne(filter, customer);
+        }
+
+        public void Remove(long id)
+        {
+            var filter = Builders<CustomerEntity>.Filter
+                .Where(c => c.Id == id);
+            _db.GetCollection<CustomerEntity>(_customers)
+                .DeleteOne(filter);
         }
     }
 }
